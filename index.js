@@ -19,7 +19,12 @@ functions.http('journeySMS', (req, res) => {
       res.set('Access-Control-Max-Age', '3600');
       res.status(204).send('');
     } else {
-        let phoneToAuthenticate = req.body.sessionInfo.parameters["cust_phone"];
+		console.log("Incoming parameters");
+		console.dir(req.body.sessionInfo.parameters);
+        var phoneToAuthenticate = req.body.sessionInfo.parameters["cust_phone"];
+		if (!phoneToAuthenticate.includes("+")) {
+			phoneToAuthenticate = `+${phoneToAuthenticate}`
+		}
         let iframeId = req.body.sessionInfo.parameters["dashboardId"];
         let pipelineKey = req.body.sessionInfo.parameters["authenticationPipelineKey"];
         let callbackUrls = req.body.sessionInfo.parameters["callbackURLs"];
@@ -44,8 +49,7 @@ async function JourneySendSMS(res, PhoneToAuthenticate, iframeId, pipelineKey, c
 		},
 		"session_info": {
 			"parameters": {
-				"JourneyReferenceId": null,
-				"PhoneNoPlus": null
+				"journeyReferenceId": null
 			}
 		}
 	};
@@ -88,8 +92,7 @@ async function JourneySendSMS(res, PhoneToAuthenticate, iframeId, pipelineKey, c
 	try {
 		const JourneySendResponse = await axios(config);
 		console.dir(JourneySendResponse.data);
-		jsonResponse.session_info.parameters.JourneyReferenceId = JourneySendResponse.data.session.externalRef;
-		jsonResponse.session_info.parameters.PhoneNoPlus = callingParty;
+		jsonResponse.session_info.parameters.journeyReferenceId = JourneySendResponse.data.session.externalRef;
         // Send results back to Dialogflow
         res.status(200).send(JSON.stringify(jsonResponse));
 	} catch (e) {
